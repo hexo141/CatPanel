@@ -63,9 +63,8 @@ jobs:
             --onefile \
             --output-dir=dist \
             --remove-output \
-            --follow-imports \
-            --include-data-files=templates=templates \
-            --include-data-files=assets=assets \
+            --include-data-dir=templates=templates \
+            --include-data-dir=assets=assets \
             --include-data-files=user.json=user.json \
             main.py
 
