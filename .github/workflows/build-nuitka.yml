@@ -40,6 +40,7 @@ jobs:
           python -m nuitka \
             --output-dir=build \
             --static-libpython=yes \
+            --standalone \
             main.py
       - name: Copy data files
         run: |
