@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title%}Login{% endblock %}
+{%block style %}
+    #login_div{
+        font-family: 'DefaultFont', sans-serif;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        border: 2px solid black;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    @font-face {
+        font-family: 'DefaultFont';
+        src: url('/GetAssets/DefaultFont') ;
+    }
+{% endblock %}
+{% block body %}
+    <div id="login_div">
+        <h2>Login to CatPanel</h2>
+        <input id="username" type="text" placeholder="Username"><br><br>
+        <input id="password" type="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+    </div>
+    <script>
+        function login(){
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+            fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            }).then(response => {
+                if(response.redirected){
+                    window.location.href = response.url;
+                } else {
+                    alert("Invalid credentials");
+                }
+            });
+        }
+    </script>
+{% endblock %}

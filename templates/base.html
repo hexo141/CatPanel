@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CatPanel - {% block title %}{% endblock %}</title>
+        <style>{% block style %}{% endblock %}</style>
+        <style>
+            body {
+                font-family: 'DefaultFont', sans-serif;
+            }
+            @font-face {
+                font-family: 'DefaultFont';
+                src: url('/GetAssets/DefaultFont') ;
+            }
+        </style>
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>
