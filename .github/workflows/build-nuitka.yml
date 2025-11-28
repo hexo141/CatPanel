@@ -38,29 +38,35 @@ jobs:
 
       - name: Build with Nuitka
         run: |
-          mkdir -p dist
+          mkdir -p build
           python -m nuitka \
-            --onefile \
-            --output-dir=dist \
+            --output-dir=build \
             --remove-output \
-            --include-data-dir=templates=templates \
-            --include-data-dir=assets=assets \
-            --include-data-files=user.json=user.json \
             main.py
 
-      - name: Rename executable
-        run: mv dist/main dist/catpanel
+      - name: Copy data files
+        run: |
+          cp -r templates build/
+          cp -r assets build/
+          cp user.json build/
+          cp requirements.txt build/
+
+      - name: Create zip archive
+        run: |
+          cd build
+          zip -r ../catpanel.zip main.bin templates assets user.json requirements.txt
+          cd ..
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: catpanel-linux
-          path: dist/catpanel
+          path: catpanel.zip
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ matrix.artifact_path }}
+          files: catpanel.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
