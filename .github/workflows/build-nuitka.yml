@@ -41,7 +41,6 @@ jobs:
           mkdir -p build
           python -m nuitka \
             --output-dir=build \
-            --remove-output \
             --onefile \
             --static-libpython=yes \
             main.py
