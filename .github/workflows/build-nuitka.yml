@@ -79,7 +79,7 @@ jobs:
         shell: pwsh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: catpanel-${{ matrix.platform }}
           path: ${{ matrix.artifact_path }}
