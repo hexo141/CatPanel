@@ -29,74 +29,39 @@ jobs:
             build-essential \
             patchelf \
             ccache
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install nuitka
-
       - name: Build with Nuitka
         run: |
           mkdir -p build
           python -m nuitka \
             --output-dir=build \
-            --onefile \
             --static-libpython=yes \
             main.py
-
       - name: Copy data files
         run: |
-          mkdir -p dist
-          cp build/main.bin dist/
-          cp -r templates dist/
-          cp -r assets dist/
-          cp user.json dist/
-          cp requirements.txt dist/
-          
-      - name: Create launcher script
+          cp -r templates build/
+          cp -r assets build/
+          cp user.json build/
+          cp requirements.txt build/
+      - name: Create zip archive
         run: |
-          cat > dist/catpanel << 'EOF'
-          #!/bin/bash
-          DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-          cd "$DIR"
-          ./main.bin "$@"
-          EOF
-          chmod +x dist/catpanel
-
-      - name: Create zip archive (main + launcher only)
-        run: |
-          mkdir -p release-main
-          cp dist/main.bin release-main/
-          cp dist/catpanel release-main/
-          cd release-main
-          zip -r ../catpanel-main.zip main.bin catpanel
+          cd build
+          zip -r ../catpanel.zip main.bin templates assets user.json requirements.txt
           cd ..
-
-      - name: Create zip archive (full package)
-        run: |
-          cd dist
-          zip -r ../catpanel-full.zip main.bin catpanel templates assets user.json requirements.txt
-          cd ..
-
-      - name: Upload main executable artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: catpanel-main-linux
-          path: catpanel-main.zip
-
-      - name: Upload full package artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: catpanel-full-linux
-          path: catpanel-full.zip
+          name: catpanel-linux
+          path: catpanel.zip
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            catpanel-main.zip
-            catpanel-full.zip
+          files: catpanel.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
