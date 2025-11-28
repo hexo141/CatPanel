@@ -43,6 +43,7 @@ jobs:
             --output-dir=build \
             --remove-output \
             --onefile \
+            --static-libpython=yes \
             main.py
 
       - name: Copy data files
