@@ -42,7 +42,7 @@ jobs:
           python -m nuitka \
             --output-dir=build \
             --remove-output \
-            --static-libpython=yes \
+            --onefile \
             main.py
 
       - name: Copy data files
@@ -53,11 +53,21 @@ jobs:
           cp -r assets dist/
           cp user.json dist/
           cp requirements.txt dist/
+          
+      - name: Create wrapper script
+        run: |
+          cat > dist/catpanel << 'EOF'
+          #!/bin/bash
+          DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          cd "$DIR"
+          ./main.bin "$@"
+          EOF
+          chmod +x dist/catpanel
 
       - name: Create zip archive
         run: |
           cd dist
-          zip -r ../catpanel.zip main.bin templates assets user.json requirements.txt
+          zip -r ../catpanel.zip main.bin catpanel templates assets user.json requirements.txt
           cd ..
 
       - name: Upload artifacts
