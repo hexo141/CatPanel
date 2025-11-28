@@ -42,18 +42,21 @@ jobs:
           python -m nuitka \
             --output-dir=build \
             --remove-output \
+            --static-libpython=yes \
             main.py
 
       - name: Copy data files
         run: |
-          cp -r templates build/
-          cp -r assets build/
-          cp user.json build/
-          cp requirements.txt build/
+          mkdir -p dist
+          cp build/main.bin dist/
+          cp -r templates dist/
+          cp -r assets dist/
+          cp user.json dist/
+          cp requirements.txt dist/
 
       - name: Create zip archive
         run: |
-          cd build
+          cd dist
           zip -r ../catpanel.zip main.bin templates assets user.json requirements.txt
           cd ..
 
