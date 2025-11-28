@@ -1,7 +1,15 @@
-from flask import Flask, render_template, session, request, redirect, url_for, send_file
-import getPwd
-import json
-import CheckSpecialStr
+import lwjgl
+import pathlib
+try:
+    from flask import Flask, render_template, session, request, redirect, url_for, send_file
+    import getPwd
+    import json
+    import CheckSpecialStr
+except ImportError as e:
+    print(e)
+    import installdep
+    if installdep.install():
+        lwjgl.logging.log("INFO", "Dependencies installed, please restart the application.")
 
 app = Flask(__name__)
 app.secret_key = getPwd.generate_random_password(length=10)
@@ -39,12 +47,11 @@ def index_pages():
     return render_template("index.html")
 
 @app.route("/GetAssets/<type>")
-@login_required
 def get_assets(type):
     if CheckSpecialStr.CheckSpecialStr(type):
         return "Invalid asset type", 400
     with open("assets/assets.json", "r") as f:
         assets = json.load(f)
-    return send_file(assets[type]["path"])
+    return send_file(pathlib.Path("assets") / assets[type]["path"])
 if __name__ == "__main__":
     app.run()

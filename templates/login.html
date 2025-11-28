@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title%}Login{% endblock %}
-{%block style %}
+{%block header %}
+<style>
     #login_div{
         font-family: 'DefaultFont', sans-serif;
         position: absolute;
@@ -10,12 +11,29 @@
         text-align: center;
         border: 2px solid black;
         border-radius: 10px;
-        padding: 20px;
+        padding: 75px;
     }
     @font-face {
         font-family: 'DefaultFont';
         src: url('/GetAssets/DefaultFont') ;
     }
+    #login_div input{
+        font-family: 'DefaultFont', sans-serif;
+        border: none;
+        outline: none;
+        border-bottom: 2px solid black;
+
+    }
+    #login_div button{
+        font-family: 'DefaultFont', sans-serif;
+        border: none;
+        outline: none;
+        border: 2px solid black;
+        color: black;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+</style>
 {% endblock %}
 {% block body %}
     <div id="login_div">
