@@ -1,4 +1,4 @@
-name: Build with Nuitka
+name: Build with PyInstaller
 
 on:
   push:
@@ -22,33 +22,27 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            patchelf \
-            ccache
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install nuitka
+          pip install pyinstaller
 
-      - name: Build with Nuitka
+      - name: Build with PyInstaller
         run: |
           mkdir -p build
-          python -m nuitka \
-            --output-dir=build \
-            --remove-output \
+          pyinstaller \
             --onefile \
+            --distpath build/dist \
+            --buildpath build/build \
+            --specpath build \
+            --name main \
             main.py
 
-      - name: Copy data files
+      - name: Prepare distribution
         run: |
           mkdir -p dist
-          cp build/main.bin dist/
+          cp build/dist/main dist/
           cp -r templates dist/
           cp -r assets dist/
           cp user.json dist/
@@ -60,23 +54,23 @@ jobs:
           #!/bin/bash
           DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
           cd "$DIR"
-          ./main.bin "$@"
+          ./main "$@"
           EOF
           chmod +x dist/catpanel
 
       - name: Create zip archive (main + launcher only)
         run: |
           mkdir -p release-main
-          cp dist/main.bin release-main/
+          cp dist/main release-main/
           cp dist/catpanel release-main/
           cd release-main
-          zip -r ../catpanel-main.zip main.bin catpanel
+          zip -r ../catpanel-main.zip main catpanel
           cd ..
 
       - name: Create zip archive (full package)
         run: |
           cd dist
-          zip -r ../catpanel-full.zip main.bin catpanel templates assets user.json requirements.txt
+          zip -r ../catpanel-full.zip main catpanel templates assets user.json requirements.txt
           cd ..
 
       - name: Upload main executable artifacts
