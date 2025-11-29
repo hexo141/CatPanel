@@ -2,11 +2,12 @@ import lwjgl
 import pathlib
 import CheckSpecialStr
 import sys
+import threading
 try:
-    from flask import Flask, render_template, session, request, redirect, url_for, send_file
+    from flask import Flask, render_template, session, request, redirect, url_for, send_file, jsonify
     import getPwd
     import json
-    import flask_socketio
+    import psutil
 except ImportError as e:
     print(e)
     import installdep
@@ -17,6 +18,7 @@ except ImportError as e:
 app = Flask(__name__)
 app.secret_key = getPwd.generate_random_password(length=10)
 app.static_folder='/assets'
+
 trust_session = []
 
 def login_required(f):
@@ -28,6 +30,7 @@ def login_required(f):
         return f(*args, **kwargs)
     # 返回包装后的函数，以便在视图中使用 login_required 装饰器
     return decorated_function
+
 @app.route("/login", methods=["GET", "POST"])
 def login_pages():
     if request.method == "POST":
@@ -56,7 +59,14 @@ def get_assets(type):
     with open("assets.json", "r") as f:
         assets = json.load(f)
     if type not in assets:
-        return 404
+        return "404"
     return send_file(pathlib.Path("assets") / assets[type]["path"])
+
+@app.route("/usage/cpu_usage")
+@login_required
+def send_cpu_usage():
+        cpu_usage = psutil.cpu_percent(interval=1)
+        return jsonify({'usage': cpu_usage})
+
 if __name__ == "__main__":
     app.run()

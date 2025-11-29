@@ -13,7 +13,7 @@ def install():
             return False
     lwjgl.logging.log("INFO", "Installing dependencies from requirements.txt...")
     try:
-        subprocess.run(["uv","pip","install","--requirement","requirements.txt","--break-system-packages","--python",sys.executable])
+        subprocess.run(["uv","pip","install","-r","requirements.txt","--break-system-packages","--python",sys.executable])
     except subprocess.CalledProcessError as e:
         lwjgl.logging.log("ERROR", f"Failed to install dependencies: {e}")
         return False

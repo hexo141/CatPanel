@@ -1,2 +1,60 @@
 {% extends 'base.html' %}
 {% block title%}Home{% endblock %}
+{% block header %}
+    <style>
+        .cpu_usage{
+            border: 1.5px solid black;
+            border-radius: 10px;
+ 
+            display: flex;
+
+            align-items: center;
+            /* 元素间留出间距 */
+            gap: 10px;
+            /* 给容器加内边距，避免内容贴边 */
+            padding: 10px 20px;
+            width: fit-content;
+        }
+        .cpu_usage .usage_bar{
+            width: 250px;
+            height: 30px;
+            border: 1.5px solid black;
+            border-radius: 5px;
+            margin: 0;
+            background-color: #e0e0e0;
+            position: relative;
+        }
+        .cpu_usage .usage_bar .usage_value{
+            height: 100%;
+            background-color: #76c7c0;
+            border-radius: 5px 0 0 5px;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+        .cpu_usage_text {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 60px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="cpu_usage">
+        <div class="usage_bar">
+            <div class="usage_value"></div>
+        </div>
+        <p class="cpu_usage_text">0%</p>
+    </div>
+    <script>
+        setInterval(() => {
+        fetch("/usage/cpu_usage")
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector(".usage_value").style.width = data.usage + "%";
+            document.querySelector(".cpu_usage_text").innerText = data.usage + "%";
+        });
+    }, 1000);
+    </script>
+{% endblock %}
