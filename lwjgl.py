@@ -1,7 +1,11 @@
 import logging
 import threading
 import sys
-from colorama import init, Fore, Style  # Windows系统需安装：pip install colorama
+import subprocess
+try:
+    from colorama import init, Fore, Style  # Windows系统需安装：pip install colorama
+except ImportError:
+    subprocess.run(["pip","install","colorama"])
 
 # 初始化colorama（Windows系统支持ANSI颜色）
 init(autoreset=True)

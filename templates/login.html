@@ -11,7 +11,7 @@
         text-align: center;
         border: 2px solid black;
         border-radius: 10px;
-        padding: 50px;
+        padding: 35px;
     }
     @font-face {
         font-family: 'DefaultFont';
@@ -34,6 +34,7 @@
         border-radius: 5px;
         cursor: pointer;
 </style>
+<link rel="stylesheet" type="text/css" href="/GetAssets/MesCss">
 {% endblock %}
 {% block body %}
     <div id="login_div">
@@ -55,10 +56,12 @@
             }).then(response => {
                 if(response.redirected){
                     window.location.href = response.url;
-                } else {
-                    alert("Invalid credentials");
-                }
-            });
+                } 
+                return response.text()
+            }).then(data => {
+                alert(data)
+            })
+            ;
         }
     </script>
 {% endblock %}

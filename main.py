@@ -1,6 +1,7 @@
 import lwjgl
 import pathlib
 import CheckSpecialStr
+import sys
 try:
     from flask import Flask, render_template, session, request, redirect, url_for, send_file
     import getPwd
@@ -40,7 +41,7 @@ def login_pages():
             trust_session.append(session_key) # 添加信任session
             return redirect(url_for("index_pages"))
         else:
-            return render_template("login.html", error="Invalid credentials")
+            return "Incorrect password"
     return render_template("login.html")
 
 @app.route("/")
@@ -52,8 +53,10 @@ def index_pages():
 def get_assets(type):
     if CheckSpecialStr.CheckSpecialStr(type):
         return "Invalid asset type", 400
-    with open("assets/assets.json", "r") as f:
+    with open("assets.json", "r") as f:
         assets = json.load(f)
+    if type not in assets:
+        return 404
     return send_file(pathlib.Path("assets") / assets[type]["path"])
 if __name__ == "__main__":
     app.run()

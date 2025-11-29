@@ -1,5 +1,8 @@
 {
     "DefaultFont": {
         "path" : "./JetBrainsMono-Regular.ttf"
+    },
+    "MesCss": {
+        "path": "./mes.css"
     }
 }
