@@ -7,5 +7,8 @@
     },
     "LoadingAnimationCss": {
         "path" : "./LoadingAnimationCss.css"
+    },
+    "BgImage": {
+        "path" : "./background.png"
     }
 }

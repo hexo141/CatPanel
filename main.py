@@ -8,6 +8,7 @@ try:
     import getPwd
     import json
     import psutil
+    import flask_limiter
 except ImportError as e:
     print(e)
     import installdep
@@ -21,6 +22,13 @@ app.static_folder='/assets'
 
 trust_session = []
 
+limiter = flask_limiter.Limiter(
+    app=app,
+    key_func=flask_limiter.util.get_remote_address,
+    default_limits=["30 per minute"] # 全局默认限制
+)
+
+
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -32,6 +40,7 @@ def login_required(f):
     return decorated_function
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def login_pages():
     if request.method == "POST":
         username = request.form.get("username", "")
@@ -53,6 +62,7 @@ def index_pages():
     return render_template("index.html")
 
 @app.route("/GetAssets/<type>")
+@limiter.limit("200 per minute")
 def get_assets(type):
     if CheckSpecialStr.CheckSpecialStr(type):
         return "Invalid asset type", 400
@@ -64,6 +74,7 @@ def get_assets(type):
 
 @app.route("/usage")
 @login_required
+@limiter.limit("90 per minute")
 def send_usage():
         cpu_usage = psutil.cpu_percent(interval=1)
         return jsonify({
