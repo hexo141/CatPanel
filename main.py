@@ -62,11 +62,14 @@ def get_assets(type):
         return "404"
     return send_file(pathlib.Path("assets") / assets[type]["path"])
 
-@app.route("/usage/cpu_usage")
+@app.route("/usage")
 @login_required
-def send_cpu_usage():
+def send_usage():
         cpu_usage = psutil.cpu_percent(interval=1)
-        return jsonify({'usage': cpu_usage})
+        return jsonify({
+                        'cpu': cpu_usage,
+                        "mem": psutil.virtual_memory().percent
+                        })
 
 if __name__ == "__main__":
     app.run()

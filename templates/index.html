@@ -2,20 +2,19 @@
 {% block title%}Home{% endblock %}
 {% block header %}
     <style>
-        .cpu_usage{
+        /* 统一的使用率容器样式，CPU和内存共用 */
+        .usage_container{
             border: 1.5px solid black;
             border-radius: 10px;
- 
             display: flex;
-
             align-items: center;
-            /* 元素间留出间距 */
-            gap: 10px;
-            /* 给容器加内边距，避免内容贴边 */
-            padding: 10px 20px;
+            gap: 10px; /* 元素间间距 */
+            padding: 10px 10px;
             width: fit-content;
+            margin: 10px 0; /* 两个容器之间增加垂直间距，可选 */
         }
-        .cpu_usage .usage_bar{
+        /* 进度条基础样式（CPU和内存共用） */
+        .usage_bar{
             width: 250px;
             height: 30px;
             border: 1.5px solid black;
@@ -24,37 +23,60 @@
             background-color: #e0e0e0;
             position: relative;
         }
-        .cpu_usage .usage_bar .usage_value{
+        /* 进度条填充部分（CPU和内存共用） */
+        .usage_bar .usage_value{
             height: 100%;
             background-color: #76c7c0;
             border-radius: 5px 0 0 5px;
             width: 0%;
             transition: width 0.5s ease-in-out;
         }
-        .cpu_usage_text {
+        /* 百分比文本样式（CPU和内存共用） */
+        .usage_text{
             margin: 0;
             font-size: 14px;
             font-weight: 500;
             min-width: 60px;
         }
+        /* 可选：给内存进度条设置不同颜色以区分 */
+        .mem_usage .usage_value{
+            background-color: #87ceeb;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="cpu_usage">
+    <!-- CPU使用率容器：使用统一的 usage_container 类 -->
+    <div class="usage_container cpu_usage">
+        <p>Cpu usage:</p>
         <div class="usage_bar">
             <div class="usage_value"></div>
         </div>
-        <p class="cpu_usage_text">0%</p>
+        <p class="usage_text">0%</p>
     </div>
+
+    <!-- 内存使用率容器：同样使用 usage_container 类，保持样式一致 -->
+    <div class="usage_container mem_usage">
+        <p>Memory usage:</p>
+        <div class="usage_bar">
+            <div class="usage_value"></div>
+        </div>
+        <p class="usage_text">0%</p>
+    </div>
+
     <script>
         setInterval(() => {
-        fetch("/usage/cpu_usage")
-        .then(response => response.json())
-        .then(data => {
-            document.querySelector(".usage_value").style.width = data.usage + "%";
-            document.querySelector(".cpu_usage_text").innerText = data.usage + "%";
-        });
-    }, 1000);
+            fetch("/usage")
+            .then(response => response.json())
+            .then(data => {
+                // 更新CPU使用率
+                document.querySelector(".cpu_usage .usage_value").style.width = data.cpu + "%";
+                document.querySelector(".cpu_usage .usage_text").innerText = data.cpu + "%";
+                
+                // 更新内存使用率
+                document.querySelector(".mem_usage .usage_value").style.width = data.mem + "%";
+                document.querySelector(".mem_usage .usage_text").innerText = data.mem + "%";
+            });
+        }, 1000);
     </script>
 {% endblock %}
