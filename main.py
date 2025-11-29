@@ -1,15 +1,17 @@
 import lwjgl
 import pathlib
+import CheckSpecialStr
 try:
     from flask import Flask, render_template, session, request, redirect, url_for, send_file
     import getPwd
     import json
-    import CheckSpecialStr
+    import flask_socketio
 except ImportError as e:
     print(e)
     import installdep
     if installdep.install():
         lwjgl.logging.log("INFO", "Dependencies installed, please restart the application.")
+    sys.exit(0)
 
 app = Flask(__name__)
 app.secret_key = getPwd.generate_random_password(length=10)

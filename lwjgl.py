@@ -1,4 +1,6 @@
-import logging, threading, inspect, sys
+import logging
+import threading
+import sys
 from colorama import init, Fore, Style  # Windows系统需安装：pip install colorama
 
 # 初始化colorama（Windows系统支持ANSI颜色）
@@ -16,7 +18,7 @@ LEVEL_COLORS = {
 # 自定义带颜色的日志格式化器
 class ColoredFormatter(logging.Formatter):
     def format(self, record):
-        # 给日志级别添加颜色，其他字段保持默认
+        # 给日志级别添加颜色，其他字段保持默认（logging自动收集）
         level_name = record.levelname
         color = LEVEL_COLORS.get(level_name, Fore.WHITE)  # 默认白色
         record.levelname = f"{color}{level_name}{Style.RESET_ALL}"  # 重置颜色避免影响后续输出
@@ -36,13 +38,12 @@ formatter = ColoredFormatter(
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
+# 修复：移除extra中的内置字段，让logging自动收集
+def custom_log(level, msg):
+    # 转换日志级别（默认INFO）
+    level_num = getattr(logging, level.upper(), logging.INFO)
+    # 直接调用logger.log，logging会自动收集filename、lineno、threadName
+    logger.log(level_num, msg)
 
-logging.log = lambda level, msg: logger.log(
-    getattr(logging, level.upper(), logging.INFO),
-    msg,
-    extra={
-        'lineno': inspect.currentframe().f_back.f_lineno,
-        'filename': inspect.currentframe().f_back.f_code.co_filename.split('/')[-1],  # 只显示文件名（不含路径）
-        'threadName': threading.current_thread().name
-    }
-)
+# 替换默认的logging.log为自定义函数（避免lambda的帧信息问题）
+logging.log = custom_log
