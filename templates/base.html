@@ -12,8 +12,12 @@
                 src: url('/GetAssets/DefaultFont') ;
             }
         </style>
+        <link rel="stylesheet" type="text/css" href="/GetAssets/LoadingAnimationCss">
     </head>
     <body>
         {% block body %}{% endblock %}
+        <div class="loading"></div>
+        <div class="loadbg"></div>
+        <script src="/GetAssets/LoadingAnimationJs"></script>
     </body>
 </html>

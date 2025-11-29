@@ -2,7 +2,10 @@
     "DefaultFont": {
         "path" : "./JetBrainsMono-Regular.ttf"
     },
-    "MesCss": {
-        "path": "./mes.css"
+    "LoadingAnimationJs": {
+        "path" : "./LoadingAnimationJs.js"
+    },
+    "LoadingAnimationCss": {
+        "path" : "./LoadingAnimationCss.css"
     }
 }

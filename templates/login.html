@@ -34,7 +34,6 @@
         border-radius: 5px;
         cursor: pointer;
 </style>
-<link rel="stylesheet" type="text/css" href="/GetAssets/MesCss">
 {% endblock %}
 {% block body %}
     <div id="login_div">
@@ -59,9 +58,8 @@
                 } 
                 return response.text()
             }).then(data => {
-                alert(data)
-            })
-            ;
+                Message.error(data);
+            });
         }
     </script>
 {% endblock %}
