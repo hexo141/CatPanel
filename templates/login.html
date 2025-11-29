@@ -58,7 +58,9 @@
                 } 
                 return response.text()
             }).then(data => {
-                Message.error(data);
+                if (data == "Incorrect password"){
+                alert(data);
+                }
             });
         }
     </script>
