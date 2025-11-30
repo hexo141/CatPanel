@@ -3,3 +3,4 @@ requests
 colorama; sys_platform == 'win32'
 psutil
 flask-limiter
+flask_socketio
