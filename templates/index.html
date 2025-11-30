@@ -2,18 +2,16 @@
 {% block title%}Home{% endblock %}
 {% block header %}
     <style>
-        /* 统一的使用率容器样式，CPU和内存共用 */
         .usage_container{
             border: 1.5px solid black;
             border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 10px; /* 元素间间距 */
+            gap: 10px;
             padding: 10px 10px;
             width: fit-content;
-            margin: 10px 0; /* 两个容器之间增加垂直间距，可选 */
+            margin: 10px 0;
         }
-        /* 进度条基础样式（CPU和内存共用） */
         .usage_bar{
             width: 250px;
             height: 30px;
@@ -23,7 +21,6 @@
             background-color: #e0e0e0;
             position: relative;
         }
-        /* 进度条填充部分（CPU和内存共用） */
         .usage_bar .usage_value{
             height: 100%;
             background-color: black;
@@ -31,14 +28,12 @@
             width: 0%;
             transition: width 0.5s ease-in-out;
         }
-        /* 百分比文本样式（CPU和内存共用） */
         .usage_text{
             margin: 0;
             font-size: 14px;
             font-weight: 500;
             min-width: 60px;
         }
-        /* 可选：给内存进度条设置不同颜色以区分 */
         .mem_usage .usage_value{
             background-color: black;
         }
@@ -46,7 +41,6 @@
 {% endblock %}
 
 {% block body %}
-    <!-- CPU使用率容器：使用统一的 usage_container 类 -->
     <div class="usage_container cpu_usage">
         <p>Cpu usage:</p>
         <div class="usage_bar">
@@ -55,7 +49,6 @@
         <p class="usage_text">0%</p>
     </div>
 
-    <!-- 内存使用率容器：同样使用 usage_container 类，保持样式一致 -->
     <div class="usage_container mem_usage">
         <p>Memory usage:</p>
         <div class="usage_bar">
@@ -65,18 +58,31 @@
     </div>
 
     <script>
-        setInterval(() => {
-            fetch("/usage")
-            .then(response => response.json())
-            .then(data => {
-                // 更新CPU使用率
-                document.querySelector(".cpu_usage .usage_value").style.width = data.cpu + "%";
-                document.querySelector(".cpu_usage .usage_text").innerText = data.cpu + "%";
-                
-                // 更新内存使用率
-                document.querySelector(".mem_usage .usage_value").style.width = data.mem + "%";
-                document.querySelector(".mem_usage .usage_text").innerText = data.mem + "%";
-            });
-        }, 1000);
+        // 连接到 SocketIO 服务器
+        var socket = io();
+        
+        // 连接成功
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            socket.emit('add_session',"{{ session['LoginSession'] }}");
+        });
+        
+        // 连接断开
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+        });
+        
+        // 接收使用率更新
+        socket.on('usage_update', function(data) {
+            console.log('Received data:', data);
+            
+            // 更新CPU使用率
+            document.querySelector(".cpu_usage .usage_value").style.width = data.cpu + "%";
+            document.querySelector(".cpu_usage .usage_text").innerText = data.cpu.toFixed(1) + "%";
+            
+            // 更新内存使用率
+            document.querySelector(".mem_usage .usage_value").style.width = data.mem + "%";
+            document.querySelector(".mem_usage .usage_text").innerText = data.mem.toFixed(1) + "%";
+        });
     </script>
 {% endblock %}

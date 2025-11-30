@@ -3,12 +3,14 @@ import pathlib
 import CheckSpecialStr
 import sys
 import threading
+import time
 try:
     from flask import Flask, render_template, session, request, redirect, url_for, send_file, jsonify
     import getPwd
     import json
     import psutil
     import flask_limiter
+    from flask_socketio import SocketIO, emit
 except ImportError as e:
     print(e)
     import installdep
@@ -20,14 +22,16 @@ app = Flask(__name__)
 app.secret_key = getPwd.generate_random_password(length=10)
 app.static_folder='/assets'
 
-trust_session = []
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+trust_session = {}
+trust_socket =[]
 
 limiter = flask_limiter.Limiter(
     app=app,
     key_func=flask_limiter.util.get_remote_address,
-    default_limits=["30 per minute"] # 全局默认限制
+    default_limits=["30 per minute"]
 )
-
 
 def login_required(f):
     from functools import wraps
@@ -36,8 +40,9 @@ def login_required(f):
         if session.get("LoginSession", "") not in trust_session:
             return redirect(url_for("login_pages"))
         return f(*args, **kwargs)
-    # 返回包装后的函数，以便在视图中使用 login_required 装饰器
     return decorated_function
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 @limiter.limit("10 per minute")
@@ -50,8 +55,8 @@ def login_pages():
         if username in users and getPwd.string_to_sha256(password) == users[username]["pwd"]:
             session_key = getPwd.generate_random_password(length=20)
             session["LoginSession"] = session_key
-            trust_session.append(session_key) # 添加信任session
-            return redirect(url_for("index_pages"))
+            trust_session[session_key] = {} # 添加信任session
+            return redirect(url_for("index_pages",session_id=session))
         else:
             return "Incorrect password"
     return render_template("login.html")
@@ -72,15 +77,40 @@ def get_assets(type):
         return "404"
     return send_file(pathlib.Path("assets") / assets[type]["path"])
 
-@app.route("/usage")
-@login_required
-@limiter.limit("90 per minute")
+# SocketIO 连接事件
+@socketio.on('connect')
+def handle_connect(data):
+    lwjgl.logging.log("INFO", 'Client connected')
+@socketio.on('disconnect')
+def handle_disconnect():
+    lwjgl.logging.log("INFO", 'Client disconnected')
+
+@socketio.on("add_session")
+def handle_add_session(data):
+    lwjgl.logging.log("INFO", f"Adding trusted socket for session: {data}")
+    if data in trust_session:
+        if request.sid not in trust_socket:
+            trust_socket.append(request.sid)
+            lwjgl.logging.log("INFO", f"Trusted socket added: {request.sid}")
+
 def send_usage():
-        cpu_usage = psutil.cpu_percent(interval=1)
-        return jsonify({
-                        'cpu': cpu_usage,
-                        "mem": psutil.virtual_memory().percent
-                        })
+    while True:
+        try:
+            cpu_usage = psutil.cpu_percent(interval=1) # 这里包含1s延迟
+            memory_usage = psutil.virtual_memory().percent
+            
+            # 向所有连接的客户端发送数据
+            for trust_user in trust_socket:
+                socketio.emit("usage_update", {
+                    'cpu': cpu_usage,
+                    "mem": memory_usage
+                },to=trust_user)
+        except Exception as e:
+            lwjgl.logging.log("ERROR", f"Error in send_usage: {e}")
+            time.sleep(1)
 
 if __name__ == "__main__":
-    app.run()
+    usage_update_thread = threading.Thread(target=send_usage, daemon=True)
+    usage_update_thread.start()
+    lwjgl.logging.log("INFO", "Starting server...")
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
