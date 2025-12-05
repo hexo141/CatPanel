@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block body %}
+<h2 id="loginsu"></h2>
+<script>
+    var socket = io();
+    const loginsu = document.getElementById("loginsu")
+    // 连接成功
+    socket.on('connect', function() {
+        console.log('Connected to server');
+        socket.emit('add_session',"{{ session['LoginSession'] }}");
+    });
+    socket.on('add_session_success', function() {
+        let seconds = 5;
+        setInterval(() => {
+            if (seconds == 0){
+                window.location.href = "/";
+            }
+            loginsu.innerText = `Login successful, you will be redirected in ${seconds} seconds`;
+            seconds = seconds - 1
+        },1000)
+    })
+</script>
+{% endblock %}

@@ -56,10 +56,15 @@ def login_pages():
             session_key = getPwd.generate_random_password(length=20)
             session["LoginSession"] = session_key
             trust_session[session_key] = {} # 添加信任session
-            return redirect(url_for("index_pages",session_id=session))
+            return redirect(url_for("logined_pages",session_id=session))
         else:
             return "Incorrect password"
     return render_template("login.html")
+
+@app.route("/logined")
+@login_required
+def logined_pages():
+    return render_template("logined.html")
 
 @app.route("/")
 @login_required
@@ -92,6 +97,7 @@ def handle_add_session(data):
         if request.sid not in trust_socket:
             trust_socket.append(request.sid)
             lwjgl.logging.log("INFO", f"Trusted socket added: {request.sid}")
+            socketio.emit("add_session_success",{"status":"ok"},to=request.sid)
 
 def send_usage():
     while True:
@@ -99,7 +105,6 @@ def send_usage():
             cpu_usage = psutil.cpu_percent(interval=1) # 这里包含1s延迟
             memory_usage = psutil.virtual_memory().percent
             
-            # 向所有连接的客户端发送数据
             for trust_user in trust_socket:
                 socketio.emit("usage_update", {
                     'cpu': cpu_usage,

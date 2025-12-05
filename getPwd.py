@@ -1,30 +1,32 @@
+import uuid
+import hashlib
+
 def string_to_sha256(s: str) -> str:
    """Return the SHA-256 hex digest of the given string."""
    return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
 
-import uuid
-import hashlib
-import secrets
-import string
-
-def generate_random_password(length=16):
-    """基于UUID生成高强度密码"""
-    # 生成UUID
-    raw_uuid = uuid.uuid4()
+def generate_random_password(length=32):
+    """
+    生成指定长度的UUID字符串，每5个字符用下划线分隔
     
-    # 将UUID转换为哈希值
-    hash_obj = hashlib.sha256(str(raw_uuid).encode())
-    hash_hex = hash_obj.hexdigest()
+    参数:
+    length: 生成的UUID字符串长度（默认32）
     
-    # 定义字符集
-    all_chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    返回:
+    格式化后的UUID字符串
+    """
+    # 生成标准UUID并移除连字符
+    full_uuid = str(uuid.uuid4()).replace('-', '')
     
-    # 从哈希值生成密码
-    password = []
-    for i in range(length):
-        # 使用哈希值作为随机源
-        index = int(hash_hex[i*2:i*2+2], 16) % len(all_chars)
-        password.append(all_chars[index])
+    # 如果请求的长度大于标准UUID长度(32)，重复UUID直到达到所需长度
+    if length > len(full_uuid):
+        repeats = (length + len(full_uuid) - 1) // len(full_uuid)
+        full_uuid = (full_uuid * repeats)[:length]
+    else:
+        full_uuid = full_uuid[:length]
     
-    return ''.join(password)
+    # 每5个字符插入一个下划线
+    formatted_uuid = '_'.join([full_uuid[i:i+5] for i in range(0, len(full_uuid), 5)])
+    
+    return formatted_uuid
