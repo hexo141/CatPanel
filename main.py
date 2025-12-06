@@ -112,7 +112,7 @@ def send_usage():
             
             for trust_user in trust_socket:
                 socketio.emit("usage_update", {
-                    'cpu': cpu_usage,
+                    "cpu": cpu_usage,
                     "mem": memory_usage
                 },to=trust_user)
         except Exception as e:
