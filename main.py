@@ -5,12 +5,16 @@ import sys
 import threading
 import time
 import os
+import get_disk_info
+import requests
+import webbrowser
 try:
     from flask import Flask, render_template, session, request, redirect, url_for, send_file, jsonify
     import getPwd
     import json
     import psutil
     import flask_limiter
+    import toml
     from flask_socketio import SocketIO, emit
 except ImportError as e:
     print(e)
@@ -23,10 +27,12 @@ app = Flask(__name__)
 app.secret_key = getPwd.generate_random_password(length=10)
 app.static_folder='/assets'
 
+PANEL_CONFIG = toml.load("config.toml")
+PANEL_PORT = PANEL_CONFIG['PANEL_PORT']
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-trust_session = {}
-trust_socket =[]
+trust_session = {} # 存储信任的session字典
+trust_socket =[] # 存储信任的socketio sid列表
 
 limiter = flask_limiter.Limiter(
     app=app,
@@ -118,8 +124,36 @@ def send_usage():
             lwjgl.logging.log("ERROR", f"Error in send_usage: {e}")
             time.sleep(1)
 
+def send_disk_usage():
+    while True:
+        try:
+            disk_data = get_disk_info.get_mounted_disks()
+            for trust_user in trust_socket:
+                socketio.emit("disk_usage_update",disk_data,to=trust_user)
+        except Exception as e:
+            lwjgl.logging.log("ERROR", f"Error in send_disk_usage: {e}")
+            time.sleep(60)
+        time.sleep(1)
+
+def open_browser():
+    # 这里是浏览器启动进程
+    Server_is_running = False
+    while not Server_is_running:
+        try:
+            if requests.get(f"http://127.0.0.1:{PANEL_PORT}").status_code == 200:
+                Server_is_running = True
+                webbrowser.open(f"http://127.0.0.1:{PANEL_PORT}")
+        except requests.exceptions.ConnectionError:
+            lwjgl.logging.log("INFO", "Waiting for server to start...")
+        except webbrowser.Error as e:
+            lwjgl.logging.log("ERROR", f"Error opening browser: {e}")
+        time.sleep(2)
 if __name__ == "__main__":
     usage_update_thread = threading.Thread(target=send_usage, daemon=True)
     usage_update_thread.start()
+    disk_usage_thread = threading.Thread(target=send_disk_usage, daemon=True)
+    disk_usage_thread.start()
+    open_browser_thread = threading.Thread(target=open_browser, daemon=True)
+    open_browser_thread.start()
     lwjgl.logging.log("INFO", "Starting server...")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=PANEL_PORT, debug=True)

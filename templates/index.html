@@ -2,6 +2,24 @@
 {% block title%}Home{% endblock %}
 {% block header %}
     <style>
+        /* 动画关键帧 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes progressFill {
+            from {
+                width: 0%;
+            }
+        }
+
         .usage_container{
             border: 1.5px solid black;
             border-radius: 10px;
@@ -11,7 +29,18 @@
             padding: 10px 10px;
             width: fit-content;
             margin: 10px 0;
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
         }
+
+        /* 延迟显示每个容器 */
+        .usage_container:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        .usage_container:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
         .usage_bar{
             width: 250px;
             height: 30px;
@@ -20,22 +49,122 @@
             margin: 0;
             background-color: #e0e0e0;
             position: relative;
+            overflow: hidden;
         }
+
         .usage_bar .usage_value{
             height: 100%;
             background-color: black;
             border-radius: 5px 0 0 5px;
-            width: 0%;
-            transition: width 0.5s ease-in-out;
+            width: 0%; /* 初始为0 */
+            animation: progressFill 1s ease-out forwards;
+            animation-delay: 0.5s; /* 等容器动画完成后开始 */
         }
+
         .usage_text{
             margin: 0;
             font-size: 14px;
             font-weight: 500;
             min-width: 60px;
         }
+
         .mem_usage .usage_value{
             background-color: black;
+        }
+
+        /* 磁盘使用率特定样式 */
+        .disk_item {
+            border: 1.5px solid black;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            min-width: 500px;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* 动画类 - 当添加这个类时触发动画 */
+        .disk_item.animate-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .disk_item:nth-of-type(1).animate-in {
+            animation-delay: 0.1s;
+        }
+        .disk_item:nth-of-type(2).animate-in {
+            animation-delay: 0.2s;
+        }
+        .disk_item:nth-of-type(3).animate-in {
+            animation-delay: 0.3s;
+        }
+        .disk_item:nth-of-type(4).animate-in {
+            animation-delay: 0.4s;
+        }
+
+        /* 进度条动画类 */
+        .disk_bar_value {
+            height: 100%;
+            background-color: #4a90e2;
+            border-radius: 5px 0 0 5px;
+            width: 0%;
+        }
+
+        .disk_bar_value.animate-fill {
+            animation: progressFill 1s ease-out forwards;
+            animation-delay: 0.6s;
+        }
+
+        .disk_header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .disk_name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .disk_info {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .disk_details {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .disk_bar {
+            width: 100%;
+            height: 20px;
+            border: 1.5px solid black;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .disk_percent {
+            text-align: right;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* 悬停效果增强 */
+        .disk_item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .usage_container:hover {
+            transform: translateX(5px);
+            transition: all 0.3s ease;
         }
     </style>
 {% endblock %}
@@ -57,12 +186,17 @@
         <p class="usage_text">0%</p>
     </div>
 
+    <div class="disk_usage">
+        <!-- 磁盘项将通过JavaScript动态管理 -->
+    </div>
+    
     <script>
+        // 存储当前显示的磁盘列表
+        let currentDisks = new Map();
+        let initialLoad = true;
         
         // 接收使用率更新
         socket.on('usage_update', function(data) {
-            console.log('Received data:', data);
-            
             // 更新CPU使用率
             document.querySelector(".cpu_usage .usage_value").style.width = data.cpu + "%";
             document.querySelector(".cpu_usage .usage_text").innerText = data.cpu.toFixed(1) + "%";
@@ -71,5 +205,232 @@
             document.querySelector(".mem_usage .usage_value").style.width = data.mem + "%";
             document.querySelector(".mem_usage .usage_text").innerText = data.mem.toFixed(1) + "%";
         });
+        
+        // 接收硬盘使用率更新
+        socket.on('disk_usage_update', function(data) {
+            if (initialLoad) {
+                // 第一次加载，创建所有磁盘项
+                createAllDiskItems(data);
+                initialLoad = false;
+            } else {
+                // 后续更新，智能更新磁盘项
+                updateDiskItemsSmartly(data);
+            }
+        });
+        
+        function createAllDiskItems(data) {
+            let container = document.querySelector(".disk_usage");
+            
+            data.forEach((item, index) => {
+                // 创建磁盘项目容器
+                let diskItem = createDiskElement(item);
+                
+                // 添加动画类（延迟触发）
+                setTimeout(() => {
+                    diskItem.classList.add('animate-in');
+                    const barValue = diskItem.querySelector('.disk_bar_value');
+                    if (barValue) barValue.classList.add('animate-fill');
+                }, 100 * index);
+                
+                // 添加到容器
+                container.appendChild(diskItem);
+                
+                // 存储到当前磁盘映射
+                currentDisks.set(item.device, {
+                    element: diskItem,
+                    data: item
+                });
+            });
+        }
+        
+        function createDiskElement(item) {
+            // 创建磁盘项目容器
+            let diskItem = document.createElement('div');
+            diskItem.className = 'disk_item';
+            diskItem.setAttribute('data-device', item.device);
+            
+            // 磁盘标题
+            let diskHeader = document.createElement('div');
+            diskHeader.className = 'disk_header';
+            
+            let diskName = document.createElement('div');
+            diskName.className = 'disk_name';
+            diskName.textContent = `${item.device} (${item.mountpoint})`;
+            
+            let diskPercent = document.createElement('div');
+            diskPercent.className = 'disk_percent';
+            diskPercent.textContent = `${item.percent}%`;
+            
+            diskHeader.appendChild(diskName);
+            diskHeader.appendChild(diskPercent);
+            
+            // 磁盘信息
+            let diskInfo = document.createElement('div');
+            diskInfo.className = 'disk_info';
+            diskInfo.innerHTML = `
+                <div>文件系统: <span class="fstype">${item.fstype}</span></div>
+                <div>总容量: <span class="total">${item.total_gb} GB</span></div>
+                <div>已使用: <span class="used">${item.used_gb} GB</span></div>
+                <div>可用: <span class="free">${item.free_gb} GB</span></div>
+            `;
+            
+            // 磁盘进度条
+            let diskBar = document.createElement('div');
+            diskBar.className = 'disk_bar';
+            
+            let diskBarValue = document.createElement('div');
+            diskBarValue.className = 'disk_bar_value';
+            diskBarValue.style.width = `${item.percent}%`;
+            
+            diskBar.appendChild(diskBarValue);
+            
+            // 磁盘详细信息
+            let diskDetails = document.createElement('div');
+            diskDetails.className = 'disk_details';
+            diskDetails.innerHTML = `
+                <div>选项: <span class="opts">${item.opts}</span></div>
+                <div>已使用字节: <span class="used_bytes">${item.used_bytes.toLocaleString()}</span></div>
+                <div>可用字节: <span class="free_bytes">${item.free_bytes.toLocaleString()}</span></div>
+            `;
+            
+            // 组装所有元素
+            diskItem.appendChild(diskHeader);
+            diskItem.appendChild(diskInfo);
+            diskItem.appendChild(diskBar);
+            diskItem.appendChild(diskDetails);
+            
+            return diskItem;
+        }
+        
+        function updateDiskItemsSmartly(data) {
+            const container = document.querySelector(".disk_usage");
+            const newDisks = new Map();
+            
+            // 遍历新数据
+            data.forEach(item => {
+                newDisks.set(item.device, item);
+                
+                // 检查这个磁盘是否已存在
+                if (currentDisks.has(item.device)) {
+                    // 已存在，更新数据
+                    updateSingleDiskItem(item);
+                } else {
+                    // 新磁盘，创建并添加
+                    const diskItem = createDiskElement(item);
+                    
+                    // 添加到容器（添加到末尾或根据需求排序）
+                    container.appendChild(diskItem);
+                    
+                    // 存储到当前磁盘映射
+                    currentDisks.set(item.device, {
+                        element: diskItem,
+                        data: item
+                    });
+                    
+                    // 延迟触发新磁盘的动画
+                    setTimeout(() => {
+                        diskItem.classList.add('animate-in');
+                        const barValue = diskItem.querySelector('.disk_bar_value');
+                        if (barValue) barValue.classList.add('animate-fill');
+                    }, 100);
+                }
+            });
+            
+            // 检查哪些磁盘需要移除（不再存在于新数据中）
+            const devicesToRemove = [];
+            currentDisks.forEach((value, device) => {
+                if (!newDisks.has(device)) {
+                    devicesToRemove.push(device);
+                }
+            });
+            
+            // 移除不再存在的磁盘项
+            devicesToRemove.forEach(device => {
+                const diskData = currentDisks.get(device);
+                if (diskData && diskData.element) {
+                    // 添加淡出动画
+                    diskData.element.style.opacity = '0';
+                    diskData.element.style.transform = 'translateY(-10px)';
+                    diskData.element.style.transition = 'all 0.5s ease';
+                    
+                    // 延迟移除元素
+                    setTimeout(() => {
+                        if (diskData.element.parentNode === container) {
+                            container.removeChild(diskData.element);
+                        }
+                    }, 500);
+                }
+                currentDisks.delete(device);
+            });
+        }
+        
+        function updateSingleDiskItem(item) {
+            const diskData = currentDisks.get(item.device);
+            if (!diskData || !diskData.element) return;
+            
+            // 更新百分比
+            const percentEl = diskData.element.querySelector('.disk_percent');
+            if (percentEl) {
+                const oldPercent = diskData.data.percent;
+                const newPercent = item.percent;
+                
+                // 只有百分比变化时才更新动画
+                if (oldPercent !== newPercent) {
+                    percentEl.textContent = `${newPercent}%`;
+                    
+                    // 平滑更新进度条
+                    const barValue = diskData.element.querySelector('.disk_bar_value');
+                    if (barValue) {
+                        barValue.style.transition = 'width 0.5s ease';
+                        barValue.style.width = `${newPercent}%`;
+                        
+                        // 移除过渡效果，避免下次更新时有延迟
+                        setTimeout(() => {
+                            barValue.style.transition = '';
+                        }, 500);
+                    }
+                }
+            }
+            
+            // 更新其他文本值（如果变化才更新）
+            const updateTextIfChanged = (selector, newValue, oldValue) => {
+                const el = diskData.element.querySelector(selector);
+                if (el && newValue !== oldValue) {
+                    el.textContent = newValue;
+                }
+            };
+            
+            // 检查并更新变化的字段
+            if (diskData.data.fstype !== item.fstype) {
+                updateTextIfChanged('.fstype', item.fstype, diskData.data.fstype);
+            }
+            if (diskData.data.total_gb !== item.total_gb) {
+                updateTextIfChanged('.total', `${item.total_gb} GB`, diskData.data.total_gb);
+            }
+            if (diskData.data.used_gb !== item.used_gb) {
+                updateTextIfChanged('.used', `${item.used_gb} GB`, diskData.data.used_gb);
+            }
+            if (diskData.data.free_gb !== item.free_gb) {
+                updateTextIfChanged('.free', `${item.free_gb} GB`, diskData.data.free_gb);
+            }
+            if (diskData.data.opts !== item.opts) {
+                updateTextIfChanged('.opts', item.opts, diskData.data.opts);
+            }
+            if (diskData.data.used_bytes !== item.used_bytes) {
+                updateTextIfChanged('.used_bytes', item.used_bytes.toLocaleString(), diskData.data.used_bytes);
+            }
+            if (diskData.data.free_bytes !== item.free_bytes) {
+                updateTextIfChanged('.free_bytes', item.free_bytes.toLocaleString(), diskData.data.free_bytes);
+            }
+            
+            // 更新磁盘名称（可能挂载点变化）
+            if (diskData.data.mountpoint !== item.mountpoint) {
+                const diskName = diskData.element.querySelector('.disk_name');
+                if (diskName) diskName.textContent = `${item.device} (${item.mountpoint})`;
+            }
+            
+            // 更新存储的数据
+            diskData.data = item;
+        }
     </script>
 {% endblock %}
