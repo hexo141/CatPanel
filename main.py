@@ -57,15 +57,11 @@ def login_pages():
             session_key = getPwd.generate_random_password(length=20)
             session["LoginSession"] = session_key
             trust_session[session_key] = {} # 添加信任session
-            return redirect(url_for("logined_pages",session_id=session))
+            return redirect(url_for("index_pages",session_id=session))
         else:
             return "Incorrect password"
     return render_template("login.html")
 
-@app.route("/logined")
-@login_required
-def logined_pages():
-    return render_template("logined.html")
 
 @app.route("/")
 @login_required
@@ -94,6 +90,9 @@ def handle_connect(data):
 @socketio.on('disconnect')
 def handle_disconnect():
     lwjgl.logging.log("INFO", 'Client disconnected')
+    if request.sid in trust_socket:
+        trust_socket.remove(request.sid)
+        lwjgl.logging.log("INFO",f"Del trust socketio sid: {request.sid}")
 
 @socketio.on("add_session")
 def handle_add_session(data):
