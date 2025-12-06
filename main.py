@@ -4,6 +4,7 @@ import CheckSpecialStr
 import sys
 import threading
 import time
+import os
 try:
     from flask import Flask, render_template, session, request, redirect, url_for, send_file, jsonify
     import getPwd
@@ -80,7 +81,11 @@ def get_assets(type):
         assets = json.load(f)
     if type not in assets:
         return "404"
-    return send_file(pathlib.Path("assets") / assets[type]["path"])
+    assets_path = pathlib.Path("assets") / assets[type]["path"]
+    if os.path.exists(assets_path):
+        return send_file(assets_path)
+    else:
+        return "404"
 
 # SocketIO 连接事件
 @socketio.on('connect')
