@@ -1,0 +1,97 @@
+name: Build with Nuitka
+
+on:
+  push:
+    tags:
+      - 'v*'          # 推送版本标签时触发
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:   # 允许手动触发
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]  # 同时构建 Linux 和 Windows
+        include:
+          - os: ubuntu-latest
+            output_ext: ''                    # Linux 可执行文件无扩展名
+            artifact_name: catpanel-linux
+          - os: windows-latest
+            output_ext: '.exe'                # Windows 可执行文件扩展名
+            artifact_name: catpanel-windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 设置 Python 环境
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 安装系统编译工具（Linux 需要 gcc 等，Windows 需要 MinGW）
+      - name: Install build tools (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install build tools (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: |
+            base-devel
+            mingw-w64-x86_64-toolchain
+
+      # 使用 Nuitka‑Action 进行编译
+      - name: Build with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          # 指定你的主程序入口文件
+          script-name: catpanel/main.py
+          # 启用 standalone 模式，生成包含所有依赖的文件夹（非单文件）
+          standalone: true
+          # 禁用 onefile，以便保留“主程序+其他文件”的目录结构
+          onefile: false
+          # 启用控制台窗口（如需 GUI 可改为 false）
+          disable-console: false
+          # 包含额外的数据文件（示例，请根据实际需求调整）
+          include-data-files: >
+            config/*.json=config/
+            templates/*.html=templates/
+            static/*=static/
+          # 输出目录（默认为 build 文件夹）
+          output-dir: build
+          # 其他常用选项
+          remove-output: true
+          show-progress: true
+          # 若使用了 PySide6、tkinter 等插件，可在此启用
+          # enable-plugins: pyside6
+
+      # 将构建产物打包为 zip（便于分发）
+      - name: Package artifact
+        shell: bash
+        run: |
+          cd build
+          zip -r ../${{ matrix.artifact_name }}.zip .
+
+      # 上传构建产物到 Actions Artifacts
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.zip
+
+      # （可选）创建 GitHub Release（仅在打 tag 时执行）
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.artifact_name }}.zip
