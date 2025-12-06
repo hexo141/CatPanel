@@ -30,15 +30,7 @@ jobs:
       run: |
         python -m nuitka \
           --standalone \
-          --output-dir=dist \
-          --remove-output \
-          --show-progress \
-          --assume-yes-for-downloads \
-          --include-data-files=config/*=config/ \
-          --include-data-files=templates/*=templates/ \
-          --include-data-files=static/*=static/ \
-          --include-data-files=*.md=. \
-          --include-data-files=*.txt=. \
+          --output-dir=dist
           catpanel/main.py
     
     - name: Package
