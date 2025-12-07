@@ -129,12 +129,15 @@
                 body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
             }).then(response => {
                 if(response.redirected){
-                    window.location.href = response.url;
+                    showMessage("success","Login successful! Redirecting...");
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                        }, 3000);
                 } 
-                return response.text()
+                return response.text();
             }).then(data => {
                 if (data == "Incorrect password"){
-                alert(data);
+                showMessage("error",data);
                 }
             });
         }

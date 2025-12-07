@@ -10,5 +10,11 @@
     },
     "BgImage": {
         "path" : "./background.png"
+    },
+    "MesJs": {
+        "path" : "./mes.js"
+    },
+    "MesCss": {
+        "path" : "./mes.css"
     }
 }

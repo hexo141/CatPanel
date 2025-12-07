@@ -54,6 +54,8 @@ def login_required(f):
 @app.route("/login", methods=["GET", "POST"])
 @limiter.limit("10 per minute")
 def login_pages():
+    if session.get("LoginSession", "") in trust_session:
+            return redirect(url_for("index_pages"))
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
@@ -66,7 +68,8 @@ def login_pages():
             return redirect(url_for("index_pages",session_id=session))
         else:
             return "Incorrect password"
-    return render_template("login.html")
+    else:
+        return render_template("login.html")
 
 
 @app.route("/")
@@ -143,6 +146,7 @@ def open_browser():
             if requests.get(f"http://127.0.0.1:{PANEL_PORT}").status_code == 200:
                 Server_is_running = True
                 webbrowser.open(f"http://127.0.0.1:{PANEL_PORT}")
+                break
         except requests.exceptions.ConnectionError:
             lwjgl.logging.log("INFO", "Waiting for server to start...")
         except webbrowser.Error as e:

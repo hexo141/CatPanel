@@ -1,0 +1,131 @@
+/* 玻璃黑消息容器 */
+#glass-message-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 350px;
+    pointer-events: none;
+}
+
+/* 单个消息样式 */
+.glass-message {
+    position: relative;
+    pointer-events: auto;
+    background: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px 40px 16px 16px; /* 为关闭按钮预留空间 */
+    color: #f0f0f0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 100%;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* 消息显示状态 */
+.glass-message.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* 消息类型标识 */
+.glass-message::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 14px 0 0 14px;
+}
+
+.glass-message.success::before { background: #4CAF50; }
+.glass-message.error::before { background: #FF5252; }
+.glass-message.warning::before { background: #FFC107; }
+.glass-message.info::before { background: #2196F3; }
+
+/* 关闭按钮 - 修复位置问题 */
+.glass-message .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px; /* 调整到右侧边缘 */
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #f0f0f0;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    z-index: 10; /* 确保在进度条上方 */
+}
+
+.glass-message .close-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* 消息图标 */
+.glass-message .icon {
+    margin-right: 10px;
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+.glass-message.success .icon { color: #4CAF50; }
+.glass-message.error .icon { color: #FF5252; }
+.glass-message.warning .icon { color: #FFC107; }
+.glass-message.info .icon { color: #2196F3; }
+
+/* 进度条指示器 - 重构实现 */
+.glass-message .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+}
+
+.glass-message .progress-bar {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 0 0 12px 0;
+    width: 100%;
+    animation: progress 3s linear forwards;
+}
+
+/* 暂停状态 - 保持当前进度 */
+.glass-message.paused .progress-bar {
+    animation-play-state: paused;
+}
+
+/* 进度条动画 */
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* 悬停效果 */
+.glass-message:hover {
+    transform: translateX(0) translateY(-2px);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+}
