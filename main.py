@@ -146,7 +146,6 @@ def open_browser():
             if requests.get(f"http://127.0.0.1:{PANEL_PORT}").status_code == 200:
                 Server_is_running = True
                 webbrowser.open(f"http://127.0.0.1:{PANEL_PORT}")
-                break
         except requests.exceptions.ConnectionError:
             lwjgl.logging.log("INFO", "Waiting for server to start...")
         except webbrowser.Error as e:
