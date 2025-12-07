@@ -9,9 +9,13 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        border: 2px solid black;
+        border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 10px;
-        padding: 35px;
+        padding: 50px 100px;
+        background: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+        backdrop-filter: blur(10px); /* 模糊效果 */
+        -webkit-backdrop-filter: blur(10px); /* Safari 支持 */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
     @font-face {
         font-family: 'DefaultFont';
@@ -19,28 +23,98 @@
     }
     #login_div input{
         font-family: 'DefaultFont', sans-serif;
-        border: none;
         outline: none;
-        border-bottom: 2px solid black;
-
     }
     #login_div button{
         font-family: 'DefaultFont', sans-serif;
         border: none;
         outline: none;
-        border: 2px solid black;
-        color: black;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        color: white;
         padding: 10px 20px;
         border-radius: 5px;
         cursor: pointer;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    #login_div button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+    .form-group{
+        position: relative;
+        width: 100%;
+        max-width: 20rem;
+        margin-bottom: 1.5rem;
+    }
+    .username_input, .password_input{
+        width: 100%;
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0.7rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1.2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 5px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+    .username_input:focus, .password_input:focus {
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .username_lable, .password_lable{
+        color: rgba(255, 255, 255, 0.7);
+        position: absolute;
+        left: 1em;
+        top: 0.8em;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        padding: 0 0.2em;
+        z-index: 1;
         background: transparent;
+    }
+    
+    .username_input:focus + .username_lable,
+    .username_input:not(:placeholder-shown) + .username_lable,
+    .password_input:focus + .password_lable,
+    .password_input:not(:placeholder-shown) + .password_lable {
+        top: -0.6em;
+        left: 0.8em;
+        font-size: 0.8em;
+        color: white;
+        background: rgba(0, 0, 0, 0.5); /* 深色半透明背景，让文字更清晰 */
+        backdrop-filter: blur(5px); /* label背景也模糊 */
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 2;
+        padding: 0 0.5em;
+        border-radius: 3px;
+    }
+    
+    /* 可选：为整个页面添加背景 */
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+    }
 </style>
 {% endblock %}
 {% block body %}
     <div id="login_div">
-        <h2>Login to CatPanel</h2>
-        <input id="username" type="text" placeholder="Username"><br><br>
-        <input id="password" type="password" placeholder="Password"><br><br>
+        <h2 style="color: white; margin-bottom: 30px;">Login to CatPanel</h2>
+        
+        <div class="form-group">
+            <input id="username" class="username_input" type="text" placeholder=" ">
+            <label for="username" class="username_lable">Name</label>
+        </div>
+        
+        <div class="form-group">
+            <input id="password" class="password_input" type="password" placeholder=" ">
+            <label for="password" class="password_lable">Password</label>
+        </div>
+        
         <button onclick="login()">Login</button>
     </div>
     <script>
@@ -64,5 +138,32 @@
                 }
             });
         }
+        
+        // 添加输入框聚焦时的额外效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.username_input, .password_input');
+            inputs.forEach(input => {
+                // 聚焦时增强效果
+                input.addEventListener('focus', function() {
+                    this.style.background = 'rgba(255, 255, 255, 0.2)';
+                });
+                
+                // 失去焦点时恢复
+                input.addEventListener('blur', function() {
+                    if(!this.value) {
+                        this.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }
+                });
+                
+                // 输入时检查是否有内容
+                input.addEventListener('input', function() {
+                    if(this.value) {
+                        this.style.background = 'rgba(255, 255, 255, 0.15)';
+                    } else {
+                        this.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }
+                });
+            });
+        });
     </script>
 {% endblock %}
