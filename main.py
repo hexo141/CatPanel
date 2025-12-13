@@ -159,4 +159,4 @@ if __name__ == "__main__":
     open_browser_thread = threading.Thread(target=open_browser, daemon=True)
     open_browser_thread.start()
     lwjgl.logging.log("INFO", "Starting server...")
-    socketio.run(app, host="0.0.0.0", port=PANEL_PORT, debug=True)
+    socketio.run(app, host="0.0.0.0", port=PANEL_PORT, debug=False)
