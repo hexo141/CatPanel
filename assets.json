@@ -17,7 +17,7 @@
     "MesCss": {
         "path" : "./mes.css"
     },
-    "Rainbow_border": {
-        "path" : "./Rainbow_border.js"
+    "border": {
+        "path" : "./border.js"
     }
 }
