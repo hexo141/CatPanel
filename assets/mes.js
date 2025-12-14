@@ -63,6 +63,12 @@ window.showMessage = (function() {
         const progressBar = message.querySelector('.progress-bar');
         let closeTimer;
         
+        // 播放音效
+        const audio = new Audio('/GetAssets/Mes_audio');
+        // 调整声音大小
+        audio.volume = 0.4;
+        audio.play();
+
         // 设置自动关闭
         const startAutoClose = () => {
             closeTimer = setTimeout(() => {

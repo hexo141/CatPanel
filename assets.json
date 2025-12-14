@@ -19,5 +19,8 @@
     },
     "border": {
         "path" : "./border.js"
+    },
+    "Mes_audio": {
+        "path" : "./successful_hit.ogg"
     }
 }
