@@ -22,7 +22,7 @@
             }
         </style>
         <script src="https://cdn.socket.io/4.4.1/socket.io.js"></script>
-        <link rel="stylesheet" type="text/css" href="/GetAssets/LoadingAnimationCss">
+        <link rel="stylesheet" type="text/css" href="/GetAssets/NprogressCss">
         <link rel="stylesheet" type="text/css" href="/GetAssets/MesCss">
         <script src="/GetAssets/MesJs"></script>
     </head>
@@ -45,7 +45,13 @@
         {% block body %}{% endblock %}
         <div class="loading"></div>
         <div class="loadbg"></div>
-        <script src="/GetAssets/LoadingAnimationJs"></script>
+        <script src="/GetAssets/NprogressJs"></script>
         <script src="/GetAssets/border"></script>
+        <script>
+            NProgress.inc()
+            window.onload = function() {
+                NProgress.done();
+            };
+        </script>
     </body>
 </html>

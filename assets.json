@@ -2,11 +2,11 @@
     "DefaultFont": {
         "path" : "./JetBrainsMono-Regular.ttf"
     },
-    "LoadingAnimationJs": {
-        "path" : "./LoadingAnimationJs.js"
+    "NprogressJs": {
+        "path" : "./nprogress.js"
     },
-    "LoadingAnimationCss": {
-        "path" : "./LoadingAnimationCss.css"
+    "NprogressCss": {
+        "path" : "./nprogress.css"
     },
     "BgImage": {
         "path" : "./background.png"
